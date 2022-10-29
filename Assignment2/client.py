@@ -29,11 +29,15 @@ class Client:
       # for this case we send only header;
       # if you need to send data you will need to append it
       send_udp(syn_header.bits())
+
       self.update_state(States.SYN_SENT)
+    
     else:
       pass
 
   def terminate(self):
+    # How do we terminate the connection?
+
     pass
 
   def update_state(self, new_state):
@@ -64,6 +68,7 @@ class Client:
       header = utils.bits_to_header(recv_data)
       if header.ack_num > lst_rec_ack_shared.value:
         lst_rec_ack_shared.value = header.ack_num
+  
   def receive_acks(self):
     # Start receive_acks_sub_process as a process
     lst_rec_ack_shared = Value('i', self.last_received_ack)
@@ -80,7 +85,9 @@ class Client:
 
 # we create a client, which establishes a connection
 client = Client()
+
 # we send a message
-client.send_reliable_message("This message is to be received in pieces")
+client.send_reliable_message("The quick brown fox jumps over the lazy dog")
+
 # we terminate the connection
 client.terminate()

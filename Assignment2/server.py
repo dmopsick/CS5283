@@ -8,6 +8,7 @@ UDP_PORT = 5005
 # initial server_state
 server_state = States.CLOSED
 
+# Build the UDP socket
 sock = socket.socket(socket.AF_INET,    # Internet
                      socket.SOCK_DGRAM) # UDP
 
@@ -43,10 +44,14 @@ while True:
     header, body, addr = recv_msg()
     # if received message is a syn message, it's a connection initiation 
     if header.syn == 1:
-      seq_number = utils.rand_int() # we randomly pick a sequence number
+      # Set the sequence to a random number 
+      seq_number = utils.rand_int() 
+
+      # ACK is the incoming header SEQ number + 1
       ack_number = header.seq_num + 1
 
-      # to be implemented
+      # Update server state to SYN_RECEIVED
+      update_server_state(States.SYN_RECEIVED)
 
       ### sending message from the server:
       #   use the following method to send messages back to client
@@ -54,8 +59,27 @@ while True:
       #   sock.sendto(your_header_object.bits(), addr)
 
   elif server_state == States.SYN_RECEIVED:
-    pass
+    # Received a SYN... Need to reply with a SYN_ACK
+
+    # Create a header
+    syn_ack_header = utils.Header(seq_number, ack_number, syn=1, ack=1)
+
+    # Send the syn ack
+    # Can I do this here? Will I have access to the addr variable? Or do I send above 
+    sock.sendto(syn_ack_header.bits(), addr)
+
+    # Modify the state
+    update_server_state(States.SYN_SENT)
+
   elif server_state == States.SYN_SENT:
+    # Wait to receive an ack back from the client
+    header, body, addr = recv_msg()
+
+    # What do we do with the ack? Do we have to check it?
+
+    pass
+  elif server_state == States.ESTAB:
+
     pass
   else:
     pass
