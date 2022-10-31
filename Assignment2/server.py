@@ -47,6 +47,8 @@ while True:
       # Set the sequence to a random number 
       seq_number = utils.rand_int() 
 
+      # print("Received a sequence number of " + str(header.seq_num))
+
       # ACK is the incoming header SEQ number + 1
       ack_number = header.seq_num + 1
 
@@ -64,6 +66,8 @@ while True:
     # Create a header
     syn_ack_header = utils.Header(seq_number, ack_number, syn=1, ack=1)
 
+    print("Going to try to send to address: " + str(addr))
+
     # Send the syn ack
     # Can I do this here? Will I have access to the addr variable? Or do I send above 
     sock.sendto(syn_ack_header.bits(), addr)
@@ -75,11 +79,14 @@ while True:
     # Wait to receive an ack back from the client
     header, body, addr = recv_msg()
 
-    # What do we do with the ack? Do we have to check it?
-
-    pass
+    # Check if the client replied with an ack
+    if header.ack == 1:
+      print("CLIENT REPLIED WITH ACK")
+      update_server_state(States.ESTAB)
   elif server_state == States.ESTAB:
-
+    # Receive the message from the client?
+    header, body, addr = recv_msg()
+    print("Body")
     pass
   else:
     pass

@@ -11,9 +11,6 @@ UDP_IP = "127.0.0.1"
 UDP_PORT = 5005
 MSS = 12 # maximum segment size
 
-sock = socket.socket(socket.AF_INET,    # Internet
-                     socket.SOCK_DGRAM) # UDP
-
 def send_udp(message):
   sock.sendto(message, (UDP_IP, UDP_PORT))
 
@@ -31,13 +28,28 @@ class Client:
       send_udp(syn_header.bits())
 
       self.update_state(States.SYN_SENT)
+
+      # Initialize last received ack
+      self.last_received_ack = -1
+      
+      # Wait for response from syn_ack
+      self.receive_acks()
+
+      print("Received ack " + str(self.last_received_ack))
+      print("Sent seq num " + str(seq_num))
+
+      # Check if the received ack is equal to the sent seq_num + 1
+      if self.last_received_ack == seq_num + 1:
+        server_seq_num = 
+
+        self.update_state(States.ESTAB)
     
     else:
       pass
 
   def terminate(self):
     # How do we terminate the connection?
-
+    print("Terminate called")
     pass
 
   def update_state(self, new_state):
@@ -46,8 +58,18 @@ class Client:
     self.client_state = new_state
 
   def send_reliable_message(self, message):
-    # send messages
-    # we loop/wait until we receive all ack.
+    print("Send Reliable message called with " + message)
+
+    # Verify that the connection is established before we send the message
+    if self.client_state == States.ESTAB:
+      # send messages
+      # we loop/wait until we receive all ack.
+
+
+
+      pass
+    
+    
     pass
 
   # these two methods/function can be used receive messages from
@@ -62,17 +84,28 @@ class Client:
   # if not all packets are acked.
   # you are free to implement any mechanism you feel comfortable
   # especially, if you have a better idea ;)
-  def receive_acks_sub_process(self, lst_rec_ack_shared):
+  def receive_acks_sub_process(self, s, lst_rec_ack_shared, lst_rec_seq_shared):
+    if utils.DEBUG:
+      print('subproc start in function')
     while True:
-      recv_data, addr = sock.recvfrom(1024)
+      recv_data, addr = s.recvfrom(1024)
       header = utils.bits_to_header(recv_data)
+      if utils.DEBUG:
+        print('received subproc header: ')
+        print(header)
       if header.ack_num > lst_rec_ack_shared.value:
         lst_rec_ack_shared.value = header.ack_num
-  
+        if utils.DEBUG:
+          print('subproc updated ack: ', lst_rec_ack_shared.value)
+      if header.seq_num > lst_rec_seq_shared.value:
+        lst_rec_seq_shared.value = header.seq_num
+        if utils.DEBUG:
+          print('subproc updated seq: ', lst_rec_seq_shared.value)
+
   def receive_acks(self):
     # Start receive_acks_sub_process as a process
     lst_rec_ack_shared = Value('i', self.last_received_ack)
-    p = multiprocessing.Process(target=self.receive_acks_sub_process, args=(lst_rec_ack_shared,))
+    p = multiprocessing.Process(target=self.receive_acks_sub_process, args=(sock, lst_rec_ack_shared, ls_rec_seq_shared))
     p.start()
     # Wait for 1 seconds or until process finishes
     p.join(1)
@@ -82,12 +115,20 @@ class Client:
       p.join()
     # here you can update your client's instance variables.
     self.last_received_ack = lst_rec_ack_shared.value
+    if utils.DEBUG:
+      print('received: ', self.last_received_ack)
+      print('shared variable: ', lst_rec_ack_shared)
 
-# we create a client, which establishes a connection
-client = Client()
+# Need to have a main process to use the multi threading logic
+if __name__ == "__main__":
+  sock = socket.socket(socket.AF_INET,    # Internet
+                     socket.SOCK_DGRAM) # UDP
 
-# we send a message
-client.send_reliable_message("The quick brown fox jumps over the lazy dog")
+  # we create a client, which establishes a connection
+  client = Client()
 
-# we terminate the connection
-client.terminate()
+  # we send a message
+  client.send_reliable_message("The quick brown fox jumps over the lazy dog")
+
+  # we terminate the connection
+  client.terminate()
