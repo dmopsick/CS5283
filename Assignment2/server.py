@@ -66,7 +66,7 @@ while True:
     # Received a SYN... Need to reply with a SYN_ACK
 
     # Create a header
-    syn_ack_header = utils.Header(seq_number, ack_number, syn=1, ack=1, fin=1)
+    syn_ack_header = utils.Header(seq_number, ack_number, syn=1, ack=1, fin=0)
 
     # Send the syn ack
     # Can I do this here? Will I have access to the addr variable? Or do I send above 
