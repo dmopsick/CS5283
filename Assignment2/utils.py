@@ -7,15 +7,18 @@ DEBUG = True
 # Extend the possible states based on your implementation
 # Refer TCP protocol
 class States(Enum):
-	CLOSED, LISTEN \
-	, SYN_RECEIVED, SYN_SENT, ESTAB = range(1, 6)
+	CLOSED, LISTEN, \
+	SYN_RECEIVED, SYN_SENT, ESTAB, \
+	FIN_WAIT_1, FIN_WAIT_2, \
+	CLOSE_WAIT, LACK_ACK = range(1, 10)
 
 class Header:
-	def __init__(self, seq_num, ack_num, syn, ack):
+	def __init__(self, seq_num, ack_num, syn, ack, fin):
 		self.seq_num = seq_num
 		self.ack_num = ack_num
 		self.syn = syn
 		self.ack = ack
+		self.fin = fin
 
 	def __str__(self):
 		return pretty_bits_print(self.bits().decode())
@@ -25,7 +28,8 @@ class Header:
 		bits += '{0:032b}'.format(self.ack_num)
 		bits += '{0:01b}'.format(self.syn)
 		bits += '{0:01b}'.format(self.ack)
-		bits += '{0:030b}'.format(0)
+		bits += '{0:01b}'.format(self.fin)
+		bits += '{0:029b}'.format(0)
 		if (DEBUG):
 			print(pretty_bits_print(bits))
 		return bits.encode()

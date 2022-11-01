@@ -9,7 +9,7 @@ import utils
 
 UDP_IP = "127.0.0.1"
 UDP_PORT = 5005
-MSS = 12 # maximum segment size
+MSS = 12 # maximum segment size | I am assuming that is measured in bytes
 
 def send_udp(message):
   sock.sendto(message, (UDP_IP, UDP_PORT))
@@ -22,7 +22,7 @@ class Client:
   def handshake(self):
     if self.client_state == States.CLOSED:
       seq_num = utils.rand_int()
-      syn_header = utils.Header(seq_num, 0, syn = 1, ack = 0)
+      syn_header = utils.Header(seq_num, 0, syn = 1, ack = 0, fin=0)
       # for this case we send only header;
       # if you need to send data you will need to append it
       send_udp(syn_header.bits())
@@ -47,7 +47,7 @@ class Client:
         # ack_seq_num = utils.rand_int()
 
         # Build the header to send the ACK
-        ack_header = utils.Header(0, ack_num, 0, 1)
+        ack_header = utils.Header(0, ack_num, 0, 1, 0)
 
         # Send the ACK
         send_udp(ack_header.bits())
@@ -75,12 +75,27 @@ class Client:
       # send messages
       # we loop/wait until we receive all ack.
 
+      # Going to treat each ASCII character as one byte    
+      # Need to determine how much of the message has been sent
+      charactersSent = 0
+
+      # Iterate until the entire messae is sent
+      while charactersSent  < message.length:
+        # Build header
+        transferHeader = utils.Header(0, 0, 0, 0, 0)
+        
+        # Build the portion of the body to send
+        transferBody = message[charactersSent:charactersSent + MSS]
+
+        # Combine header and the body and send it
+        send_udp(transferHeader.bits() + transferBody)
+
+        # Increment characters sent 
+        charactersSent += MSS
 
 
-      pass
-    
-    
-    pass
+
+
 
   # these two methods/function can be used receive messages from
   # server. the reason we need such mechanism is `recv` blocking

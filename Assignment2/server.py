@@ -47,8 +47,6 @@ while True:
       # Set the sequence to a random number 
       seq_number = utils.rand_int() 
 
-      # print("Received a sequence number of " + str(header.seq_num))
-
       # ACK is the incoming header SEQ number + 1
       ack_number = header.seq_num + 1
 
@@ -64,7 +62,7 @@ while True:
     # Received a SYN... Need to reply with a SYN_ACK
 
     # Create a header
-    syn_ack_header = utils.Header(seq_number, ack_number, syn=1, ack=1)
+    syn_ack_header = utils.Header(seq_number, ack_number, syn=1, ack=1, fin=1)
 
     print("Going to try to send to address: " + str(addr))
 
@@ -84,10 +82,24 @@ while True:
       print("CLIENT REPLIED WITH ACK")
       update_server_state(States.ESTAB)
   elif server_state == States.ESTAB:
+    # Variable to hold the entire message
+    receivedMessage = ""
+
     # Need to receive messages until the state changes
     header, body, addr = recv_msg()
-    print("Body")
-    pass
-  
+    
+    # Check if there is a fin bit to end the connection
+    if header.fin == 1:
+      server_state = States.CLOSE_WAIT
+
+      print("FINAL LOAED MESSAGE " +  receivedMessage)
+      pass
+    else:
+      # No FIN bit, continue loading the message
+
+      # Add the body of the TCP segment to the received message
+      receivedMessage = receivedMessage + body
+  elif server_state == States.CLOSE_WAIT:
+    print("It is time to close wait")
   else:
     pass
