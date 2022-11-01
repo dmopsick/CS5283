@@ -58,10 +58,48 @@ class Client:
       pass
 
   def terminate(self):
-    # How do we terminate the connection?
     print("Terminate called")
-    pass
 
+    # Can only terminate an established connection
+    if self.client_state == States.ESTAB:
+      # Generate Seq num
+      fin_seq_num = utils.rand_int()
+
+      # Build Fin header to send
+      fin_header = utils.Header(fin_seq_num, 0, 0, 0, 1)
+
+      # Send the fin header
+      send_udp(fin_header.bits())
+
+      self.client_state = States.FIN_WAIT_1
+
+      # Wait to receive an ack
+      self.receive_acks()
+
+      # Verify the received ack_num
+      if self.last_received_ack == fin_seq_num + 1: 
+        self.client_state = States.FIN_WAIT_2
+
+        # Wait for the FIN from the sever
+        self.receive_acks()
+
+        # Load the received seq num
+        server_fin_seq_num =  self.last_received_seq_num
+
+        fin_ack_num = server_fin_seq_num + 1
+
+        # Build a header to send an ACK back
+        fin_ack_header = utils.Header(0, fin_ack_num, syn=0, ack=1, fin=0)
+
+        # Send the ACK of the FIN to the server
+        send_udp(fin_ack_header.bits())
+
+        # Here is where we can do a timed wait for twice the legth of the max segment life time
+        # Does that just mean double the time spent sending all messages? Or just double how long it took to send the longest message
+
+        # Close the connection
+        self.client_state = States.CLOSED
+     
   def update_state(self, new_state):
     if utils.DEBUG:
       print(self.client_state, '->', new_state)
@@ -99,9 +137,6 @@ class Client:
 
         # Increment characters sent 
         charactersSent += MSS
-
-
-
 
 
   # these two methods/function can be used receive messages from
