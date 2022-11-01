@@ -10,7 +10,8 @@ class States(Enum):
 	CLOSED, LISTEN, \
 	SYN_RECEIVED, SYN_SENT, ESTAB, \
 	FIN_WAIT_1, FIN_WAIT_2, \
-	CLOSE_WAIT, LAST_ACK = range(1, 10)
+	CLOSE_WAIT, LAST_ACK, \
+	TIMED_WAIT = range(1, 11)
 
 class Header:
 	def __init__(self, seq_num, ack_num, syn, ack, fin):

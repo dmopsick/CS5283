@@ -10,6 +10,7 @@ import utils
 UDP_IP = "127.0.0.1"
 UDP_PORT = 5005
 MSS = 12 # maximum segment size | I am assuming that is measured in bytes
+MSL = 5 # MAX SEGMENT LIFETIME -  Not sure what value it should be. I am measuring this in seconds for use with Python Time Library
 
 def send_udp(message):
   sock.sendto(message, (UDP_IP, UDP_PORT))
@@ -36,8 +37,8 @@ class Client:
       # Wait for response from syn_ack
       self.receive_acks()
 
-      print("Received ack " + str(self.last_received_ack))
-      print("Sent seq num " + str(seq_num))
+      # print("Received ack " + str(self.last_received_ack))
+      # print("Sent seq num " + str(seq_num))
 
       # Check if the received ack is equal to the sent seq_num + 1
       if self.last_received_ack == seq_num + 1:
@@ -58,11 +59,9 @@ class Client:
       pass
 
   def terminate(self):
-    print("Terminate called")
 
     # Can we only terminate an established connection? 
     if self.client_state == States.ESTAB:
-      print("TERMINATE TIME")
       # Generate Seq num
       fin_seq_num = utils.rand_int()
 
@@ -75,18 +74,20 @@ class Client:
       self.update_state(States.FIN_WAIT_1)
 
       # Wait to receive an ack
+      self.last_received_ack = -1
+      self.last_received_seq_num = -1
       self.receive_acks()
-
+      
       # Verify the received ack_num
-      if self.last_received_ack == fin_seq_num + 1: 
-        self.update_state = States.FIN_WAIT_2
+      if self.last_received_ack == fin_seq_num+1: 
+        self.update_state(States.FIN_WAIT_2)
 
         # Wait for the FIN from the sever
         self.receive_acks()
 
         # Load the received seq num
         server_fin_seq_num =  self.last_received_seq_num
-
+        
         fin_ack_num = server_fin_seq_num + 1
 
         # Build a header to send an ACK back
@@ -95,14 +96,17 @@ class Client:
         # Send the ACK of the FIN to the server
         send_udp(fin_ack_header.bits())
 
-        # Here is where we can do a timed wait for twice the legth of the max segment life time
-        # Does that just mean double the time spent sending all messages? Or just double how long it took to send the longest message
+        # Should the time wait be before the directly above sending of ACK? I think not based on the RFC diagram and slides
+        # Here is where we can do a timed wait for twice the legth of the max segment life time (MSL)
+        self.update_state(States.TIMED_WAIT)
+        time.sleep(MSL * 2)
 
         # Close the connection
-        self.update_state = States.CLOSED
+        self.update_state(States.CLOSED)
 
     else:
-      print("Terminate called, but not in ESTAB state")
+      # print("Terminate called, but not in ESTAB state")
+      pass
      
   def update_state(self, new_state):
     if utils.DEBUG:
@@ -110,7 +114,7 @@ class Client:
     self.client_state = new_state
 
   def send_reliable_message(self, message):
-    print("Send Reliable message called with " + message)
+    # print("Send Reliable message called with " + message)
 
     # Verify that the connection is established before we send the message
     if self.client_state == States.ESTAB:
@@ -129,12 +133,12 @@ class Client:
         # Build the portion of the body to send
         transferBody = message[charactersSent:charactersSent + MSS]
 
-        print("Raw text to send " + transferBody)
+        # print("Raw text to send " + transferBody)
 
         # Convert the ascii text to bits
         transferBodyBits = transferBody.encode('ascii')
 
-        print('Bits to send ' + str(transferBodyBits))
+        # print('Bits to send ' + str(transferBodyBits))
 
         # Combine header and the body and send it
         send_udp(transferHeader.bits() + transferBodyBits)

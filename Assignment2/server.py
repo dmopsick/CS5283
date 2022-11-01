@@ -68,8 +68,6 @@ while True:
     # Create a header
     syn_ack_header = utils.Header(seq_number, ack_number, syn=1, ack=1, fin=1)
 
-    print("Going to try to send to address: " + str(addr))
-
     # Send the syn ack
     # Can I do this here? Will I have access to the addr variable? Or do I send above 
     sock.sendto(syn_ack_header.bits(), addr)
@@ -91,8 +89,6 @@ while True:
     
     # Check if there is a fin bit to end the connection
     if header.fin == 1:
-      print("CLIENT HAS REQUESTED TEARDOWN")
-
       # Load the received seq_num
       fin_seq_num = header.seq_num
       fin_ack_num = fin_seq_num + 1
@@ -107,31 +103,32 @@ while True:
       print("FINAL LOADED MESSAGE " +  receivedMessage)
     else:
       # No FIN bit, continue loading the message segment by segment
-
-      print("Flag 1 - Received segment: " + body)
+      # print("Flag 1 - Received segment: " + body)
 
       # Add the body of the TCP segment to the received message
       receivedMessage = receivedMessage + body
 
-      print("FLAG 10 - Entire message so far: " + receivedMessage)
+      # print("FLAG 10 - Entire message so far: " + receivedMessage)
   elif server_state == States.CLOSE_WAIT:
     # Generate a sequence num
     seq_num = utils.rand_int()
 
     # Build a FIN header to send to the the client
-    fin_header = utils.Header(0, seq_num, syn=0, ack=0, fin=1)
+    fin_header = utils.Header(seq_num, 0, syn=0, ack=0, fin=1)
 
+    # Send the fin header to the client
     sock.sendto(fin_header.bits(), addr)
 
+    # Update to LAST_ACK
     update_server_state(States.LAST_ACK)
 
   elif server_state == States.LAST_ACK:
-    # Receive an ack
+    # Receive the final ack to finish the teardown
     header, body, addr = recv_msg()
 
     # Make sure the client as sent an ACK back
     if header.ack == 1:
-    # Set state to closed, connection done and closed
+    # Set state to closed, connection done, toredown, return server to closed
       update_server_state(States.CLOSED)
 
   else:
