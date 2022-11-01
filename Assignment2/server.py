@@ -91,6 +91,8 @@ while True:
     
     # Check if there is a fin bit to end the connection
     if header.fin == 1:
+      print("CLIENT HAS REQUESTED TEARDOWN")
+
       # Load the received seq_num
       fin_seq_num = header.seq_num
       fin_ack_num = fin_seq_num + 1
@@ -103,7 +105,6 @@ while True:
       update_server_state(States.CLOSE_WAIT)
 
       print("FINAL LOADED MESSAGE " +  receivedMessage)
-
     else:
       # No FIN bit, continue loading the message segment by segment
 
@@ -121,6 +122,8 @@ while True:
     fin_header = utils.Header(0, seq_num, syn=0, ack=0, fin=1)
 
     sock.sendto(fin_header.bits(), addr)
+
+    update_server_state(States.LAST_ACK)
 
   elif server_state == States.LAST_ACK:
     # Receive an ack

@@ -47,7 +47,7 @@ class Client:
         # ack_seq_num = utils.rand_int()
 
         # Build the header to send the ACK
-        ack_header = utils.Header(0, ack_num, 0, 1, 0)
+        ack_header = utils.Header(0, ack_num, syn=0, ack=1, fin=0)
 
         # Send the ACK
         send_udp(ack_header.bits())
@@ -62,11 +62,12 @@ class Client:
 
     # Can we only terminate an established connection? 
     if self.client_state == States.ESTAB:
+      print("TERMINATE TIME")
       # Generate Seq num
       fin_seq_num = utils.rand_int()
 
       # Build Fin header to send
-      fin_header = utils.Header(fin_seq_num, 0, 0, 0, 1)
+      fin_header = utils.Header(fin_seq_num, 0, syn=0, ack=0, fin=1)
 
       # Send the fin header
       send_udp(fin_header.bits())
@@ -99,8 +100,9 @@ class Client:
 
         # Close the connection
         self.update_state = States.CLOSED
-      else:
-        print("Terminate called, but not in ESTAB state")
+
+    else:
+      print("Terminate called, but not in ESTAB state")
      
   def update_state(self, new_state):
     if utils.DEBUG:
@@ -203,4 +205,4 @@ if __name__ == "__main__":
   client.send_reliable_message("The quick brown fox jumps over the lazy dog")
 
   # we terminate the connection
-  # client.terminate()
+  client.terminate()
