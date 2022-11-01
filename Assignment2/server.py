@@ -84,9 +84,10 @@ while True:
       print("CLIENT REPLIED WITH ACK")
       update_server_state(States.ESTAB)
   elif server_state == States.ESTAB:
-    # Receive the message from the client?
+    # Need to receive messages until the state changes
     header, body, addr = recv_msg()
     print("Body")
     pass
+  
   else:
     pass

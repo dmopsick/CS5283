@@ -29,8 +29,9 @@ class Client:
 
       self.update_state(States.SYN_SENT)
 
-      # Initialize last received ack
+      # Initialize last received ack and seq num
       self.last_received_ack = -1
+      self.last_received_seq_num = -1
       
       # Wait for response from syn_ack
       self.receive_acks()
@@ -40,7 +41,16 @@ class Client:
 
       # Check if the received ack is equal to the sent seq_num + 1
       if self.last_received_ack == seq_num + 1:
-        server_seq_num = 
+        server_seq_num = self.last_received_seq_num 
+        ack_num = server_seq_num + 1
+        # I do not think ack needs a seq num
+        # ack_seq_num = utils.rand_int()
+
+        # Build the header to send the ACK
+        ack_header = utils.Header(0, ack_num, 0, 1)
+
+        # Send the ACK
+        send_udp(ack_header.bits())
 
         self.update_state(States.ESTAB)
     
@@ -105,7 +115,9 @@ class Client:
   def receive_acks(self):
     # Start receive_acks_sub_process as a process
     lst_rec_ack_shared = Value('i', self.last_received_ack)
-    p = multiprocessing.Process(target=self.receive_acks_sub_process, args=(sock, lst_rec_ack_shared, ls_rec_seq_shared))
+    lst_rec_seq_shared = Value('i', self.last_received_seq_num)
+
+    p = multiprocessing.Process(target=self.receive_acks_sub_process, args=(sock, lst_rec_ack_shared, lst_rec_seq_shared))
     p.start()
     # Wait for 1 seconds or until process finishes
     p.join(1)
@@ -115,6 +127,7 @@ class Client:
       p.join()
     # here you can update your client's instance variables.
     self.last_received_ack = lst_rec_ack_shared.value
+    self.last_received_seq_num = lst_rec_seq_shared.value
     if utils.DEBUG:
       print('received: ', self.last_received_ack)
       print('shared variable: ', lst_rec_ack_shared)
