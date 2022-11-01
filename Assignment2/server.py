@@ -100,6 +100,7 @@ while True:
 
       update_server_state(States.CLOSE_WAIT)
 
+      # Leaving this print to show the transferred message
       print("FINAL LOADED MESSAGE " +  receivedMessage)
     else:
       # No FIN bit, continue loading the message segment by segment
