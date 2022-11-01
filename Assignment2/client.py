@@ -80,15 +80,22 @@ class Client:
       charactersSent = 0
 
       # Iterate until the entire messae is sent
-      while charactersSent  < message.length:
+      while charactersSent  < len(message):
         # Build header
         transferHeader = utils.Header(0, 0, 0, 0, 0)
         
         # Build the portion of the body to send
         transferBody = message[charactersSent:charactersSent + MSS]
 
+        print("Raw text to send " + transferBody)
+
+        # Convert the ascii text to bits
+        transferBodyBits = transferBody.encode('ascii')
+
+        print('Bits to send ' + str(transferBodyBits))
+
         # Combine header and the body and send it
-        send_udp(transferHeader.bits() + transferBody)
+        send_udp(transferHeader.bits() + transferBodyBits)
 
         # Increment characters sent 
         charactersSent += MSS

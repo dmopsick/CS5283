@@ -30,6 +30,9 @@ def recv_msg():
   body = utils.get_body_from_data(data)
   return (header, body, addr)
 
+# Variable to hold the entire message
+receivedMessage = ""
+
 # the server runs in an infinite loop and takes
 # action based on current state and updates its state
 # accordingly
@@ -79,12 +82,10 @@ while True:
 
     # Check if the client replied with an ack
     if header.ack == 1:
-      print("CLIENT REPLIED WITH ACK")
+      # print("CLIENT REPLIED WITH ACK")
       update_server_state(States.ESTAB)
   elif server_state == States.ESTAB:
-    # Variable to hold the entire message
-    receivedMessage = ""
-
+   
     # Need to receive messages until the state changes
     header, body, addr = recv_msg()
     
@@ -92,14 +93,21 @@ while True:
     if header.fin == 1:
       server_state = States.CLOSE_WAIT
 
-      print("FINAL LOAED MESSAGE " +  receivedMessage)
+      print("FINAL LOADED MESSAGE " +  receivedMessage)
       pass
     else:
       # No FIN bit, continue loading the message
 
+      # print("Flag 1 - Received segment: " + body)
+
       # Add the body of the TCP segment to the received message
       receivedMessage = receivedMessage + body
+
+      print("FLAG 10 - Entire message: " + receivedMessage)
   elif server_state == States.CLOSE_WAIT:
     print("It is time to close wait")
+  elif server_state == States.LAST_ACK:
+
+    pass
   else:
     pass

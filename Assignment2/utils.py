@@ -40,7 +40,8 @@ def bits_to_header(bits):
 	ack_num = int(bits[32:64], 2)
 	syn = int(bits[64], 2)
 	ack = int(bits[65], 2)
-	return Header(seq_num, ack_num, syn, ack)
+	fin = int (bits[66], 2)
+	return Header(seq_num, ack_num, syn, ack, fin)
 
 # Returns the bits beyond the first 12 bytes
 # If your header is 12 bytes, it returns the body of a message
