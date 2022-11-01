@@ -60,7 +60,7 @@ class Client:
   def terminate(self):
     print("Terminate called")
 
-    # Can only terminate an established connection
+    # Can we only terminate an established connection? 
     if self.client_state == States.ESTAB:
       # Generate Seq num
       fin_seq_num = utils.rand_int()
@@ -71,14 +71,14 @@ class Client:
       # Send the fin header
       send_udp(fin_header.bits())
 
-      self.client_state = States.FIN_WAIT_1
+      self.update_state(States.FIN_WAIT_1)
 
       # Wait to receive an ack
       self.receive_acks()
 
       # Verify the received ack_num
       if self.last_received_ack == fin_seq_num + 1: 
-        self.client_state = States.FIN_WAIT_2
+        self.update_state = States.FIN_WAIT_2
 
         # Wait for the FIN from the sever
         self.receive_acks()
@@ -98,7 +98,9 @@ class Client:
         # Does that just mean double the time spent sending all messages? Or just double how long it took to send the longest message
 
         # Close the connection
-        self.client_state = States.CLOSED
+        self.update_state = States.CLOSED
+      else:
+        print("Terminate called, but not in ESTAB state")
      
   def update_state(self, new_state):
     if utils.DEBUG:
@@ -201,4 +203,4 @@ if __name__ == "__main__":
   client.send_reliable_message("The quick brown fox jumps over the lazy dog")
 
   # we terminate the connection
-  client.terminate()
+  # client.terminate()

@@ -95,30 +95,32 @@ while True:
       fin_seq_num = header.seq_num
       fin_ack_num = fin_seq_num + 1
 
-      fin_ack_header = utils.Header(0, fin_ack_num, syn=0, ack=1)
+      fin_ack_header = utils.Header(0, fin_ack_num, syn=0, ack=1, fin=0)
       
       # Send the FIN ACK to the client
-      sock.sendto(fin_ack_header.bits, addr)
+      sock.sendto(fin_ack_header.bits(), addr)
 
-      server_state = States.CLOSE_WAIT
+      update_server_state(States.CLOSE_WAIT)
 
       print("FINAL LOADED MESSAGE " +  receivedMessage)
 
     else:
       # No FIN bit, continue loading the message segment by segment
 
-      # print("Flag 1 - Received segment: " + body)
+      print("Flag 1 - Received segment: " + body)
 
       # Add the body of the TCP segment to the received message
       receivedMessage = receivedMessage + body
 
-      # print("FLAG 10 - Entire message: " + receivedMessage)
+      print("FLAG 10 - Entire message so far: " + receivedMessage)
   elif server_state == States.CLOSE_WAIT:
     # Generate a sequence num
     seq_num = utils.rand_int()
 
     # Build a FIN header to send to the the client
     fin_header = utils.Header(0, seq_num, syn=0, ack=0, fin=1)
+
+    sock.sendto(fin_header.bits(), addr)
 
   elif server_state == States.LAST_ACK:
     # Receive an ack
@@ -127,7 +129,7 @@ while True:
     # Make sure the client as sent an ACK back
     if header.ack == 1:
     # Set state to closed, connection done and closed
-      update(States.CLOSED)
+      update_server_state(States.CLOSED)
 
   else:
     pass
