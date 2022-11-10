@@ -105,7 +105,7 @@ def chan_client():
 		if event_terminate.is_set():
 			break
 	
-		print('waiting on client')
+		print('Waiting on client...')
 		
 		try:
 			data_client, addr_client = sock_client.recvfrom(1024)
