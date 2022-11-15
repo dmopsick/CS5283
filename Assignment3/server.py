@@ -4,8 +4,8 @@ import utils
 from utils import States
 
 UDP_IP = "127.0.0.1"
-# UDP_PORT = 5005 # For testing without channel
-UDP_PORT = 5008
+UDP_PORT = 5005 # For testing without channel
+# UDP_PORT = 5008 # For testing with channel
 
 # initial server_state
 server_state = States.CLOSED
@@ -107,8 +107,22 @@ while True:
       # No FIN bit, continue loading the message segment by segment
       # print("Flag 1 - Received segment: " + body)
 
-      # Add the body of the TCP segment to the received message
-      receivedMessage = receivedMessage + body
+      print("Flag 1: Received following seq number: " + str(header.seq_num))
+
+      # Get the sequence number of the received data
+      data_seq_num = header.seq_num
+
+      # Verify the seq numbers to determine whether the message is arriving in the corect order
+      if (data_seq_num == len(receivedMessage)):
+        # Based on seq number this is the next message, append it to the received message 
+
+        print("Message arriving in expected order")
+
+        # Add the body of the TCP segment to the received message
+        receivedMessage = receivedMessage + body
+      else :
+        # This packet has arrived out of order... let's ignore for noq
+        pass
 
       # print("FLAG 10 - Entire message so far: " + receivedMessage)
   elif server_state == States.CLOSE_WAIT:

@@ -3,7 +3,6 @@ import random
 
 # Set this to false before submission
 DEBUG = True
-
 # Extend the possible states based on your implementation
 # Refer TCP protocol
 class States(Enum):

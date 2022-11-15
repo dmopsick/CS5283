@@ -8,9 +8,9 @@ import time
 import utils
 
 UDP_IP = "127.0.0.1"
-# UDP_PORT = 5005 # Connecting without channel
-UDP_PORT = 5007
-MSS = 12 # maximum segment size | I am assuming that is measured in bytes
+UDP_PORT = 5005 # Connecting without channel
+# UDP_PORT = 5007 # Testing with channel
+MSS = 12 # maximum segment size | This is measured in bytes
 MSL = 5 # MAX SEGMENT LIFETIME -  Not sure what value it should be. I am measuring this in seconds for use with Python Time Library
 
 def send_udp(message):
@@ -128,8 +128,9 @@ class Client:
 
       # Iterate until the entire messae is sent
       while charactersSent  < len(message):
-        # Build header
-        transferHeader = utils.Header(0, 0, 0, 0, 0)
+        # Build header for sending reliably
+        # I will make characters sent the sequence number to allow the server to determine the correct order of the string
+        transferHeader = utils.Header(charactersSent, 0, syn=0, ack=0, fin=0)
         
         # Build the portion of the body to send
         transferBody = message[charactersSent:charactersSent + MSS]

@@ -131,7 +131,7 @@ def chan_client():
 		
 		channel_wait = random.uniform(sleep_v,sleep_factor * sleep_v)
 		time.sleep(channel_wait)
-		print("channel delaying client->server for ", channel_wait, "s")
+		print("channel depythying client->server for ", channel_wait, "s")
 
 		if header.fin == 1:
 			teardown_started = True
