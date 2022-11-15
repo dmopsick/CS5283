@@ -107,7 +107,7 @@ while True:
       # No FIN bit, continue loading the message segment by segment
       # print("Flag 1 - Received segment: " + body)
 
-      print("Flag 1: Received following seq number: " + str(header.seq_num))
+      # print("Flag 1: Received following seq number: " + str(header.seq_num))
 
       # Get the sequence number of the received data
       data_seq_num = header.seq_num

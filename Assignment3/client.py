@@ -125,16 +125,16 @@ class Client:
 
       # Going to treat each ASCII character as one byte    
       # Need to determine how much of the message has been sent
-      bytesSent = 0
+      totalBytesSent = 0
 
       # Iterate until the entire messae is sent
-      while bytesSent  < len(message):
+      while totalBytesSent  < len(message):
         # Build header for sending reliably
         # I will make characters sent the sequence number to allow the server to determine the correct order of the string
-        transferHeader = utils.Header(bytesSent, 0, syn=0, ack=0, fin=0)
+        transferHeader = utils.Header(totalBytesSent, 0, syn=0, ack=0, fin=0)
         
         # Build the portion of the body to send
-        transferBody = message[bytesSent:bytesSent + MSS]
+        transferBody = message[totalBytesSent:totalBytesSent + MSS]
 
         # print("Raw text to send " + transferBody)
 
@@ -152,15 +152,17 @@ class Client:
         # Only wait a certain amount of time, then must reetransmit message
         time.sleep(RETRANSMIT_TIMEOUT_LENGTH)
 
-        print('Last Received Ack: ' + str(self.last_received_ack_num))
-        print('Amount of bytes sent ' + str(bytesSent + MSS))
+        # print('Last Received Ack: ' + str(self.last_received_ack_num))
+        # print('Amount of bytes sent ' + str(totalBytesSent + MSS))
+
+        bytesInMostRecentMessage = len(transferBodyBits)
 
         # Wait to receive an ack
-        # Check if the ack is equal to the amount of Bytes sent + MSS + 1
-        if self.last_received_ack_num == (bytesSent + MSS + 1):
+        # Check if the ack is equal to the total amount of Bytes sent + bytes in most recent message + 1
+        if self.last_received_ack_num == (totalBytesSent + bytesInMostRecentMessage + 1):
           # Increment characters sent if and only if an ack is received and it is the expected num
           # This means it's time move on to the next segment of the message
-          bytesSent += MSS
+          totalBytesSent += MSS
         else:
           # Resend the message
           # An unexpected ack was received or the timeout window has passed
