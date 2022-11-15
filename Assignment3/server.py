@@ -42,6 +42,9 @@ receivedMessage = ""
 # states in utils.py file
 while True:
   if server_state == States.CLOSED:
+    # Make sure the receivedMessage is initialized every time connection is established
+    receivedMessage = ""
+
     # we already started listening, just update the state
     update_server_state(States.LISTEN)
   elif server_state == States.LISTEN:
@@ -105,9 +108,8 @@ while True:
       print("FINAL LOADED MESSAGE " +  receivedMessage)
     else:
       # No FIN bit, continue loading the message segment by segment
-      # print("Flag 1 - Received segment: " + body)
 
-      # print("Flag 1: Received following seq number: " + str(header.seq_num))
+      print("Flag 1: Received following seq number: " + str(header.seq_num))
 
       # Get the sequence number of the received data
       data_seq_num = header.seq_num
@@ -116,7 +118,7 @@ while True:
       if (data_seq_num == len(receivedMessage)):
         # Based on seq number this is the next message, append it to the received message 
 
-        print("Message arriving in expected order, body: " + body)
+        # print("Message arriving in expected order, body: " + body)
 
         # Add the body of the TCP segment to the received message
         receivedMessage = receivedMessage + body
@@ -127,7 +129,10 @@ while True:
       # Must send back an ack no matter what 
       # Build out the ack header
       data_transfer_ack_num = len(receivedMessage) + 1
-      data_transfer_ack_header = utils.Header(0, data_transfer_ack_num, syn=0, ack=1, fin=0)
+
+      # print("Flag 2: Send back the ack " + str(data_transfer_ack_num))
+
+      data_transfer_ack_header = utils.Header(seq_num=0, ack_num=data_transfer_ack_num, syn=0, ack=1, fin=0)
 
       # Send the header
       sock.sendto(data_transfer_ack_header.bits(), addr)

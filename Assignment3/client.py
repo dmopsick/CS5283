@@ -12,7 +12,7 @@ UDP_PORT = 5005 # Connecting without channel
 # UDP_PORT = 5007 # Testing with channel
 MSS = 12 # maximum segment size | This is measured in bytes
 MSL = 5 # MAX SEGMENT LIFETIME -  Not sure what value it should be. I am measuring this in seconds for use with Python Time Library
-RETRANSMIT_TIMEOUT_LENGTH = 5
+RETRANSMIT_TIMEOUT_LENGTH = 1
 
 def send_udp(message):
   sock.sendto(message, (UDP_IP, UDP_PORT))
@@ -33,7 +33,7 @@ class Client:
       self.update_state(States.SYN_SENT)
 
       # Initialize last received ack and seq num
-      self.last_received_ack_num= -1
+      self.last_received_ack_num = -1
       self.last_received_seq_num = -1
       
       # Wait for response from syn_ack
@@ -117,6 +117,8 @@ class Client:
 
   def send_reliable_message(self, message):
     # print("Send Reliable message called with " + message)
+    self.last_received_ack_num = -1
+    self.last_received_seq_num = -1
 
     # Verify that the connection is established before we send the message
     if self.client_state == States.ESTAB:
@@ -152,10 +154,10 @@ class Client:
         # Only wait a certain amount of time, then must reetransmit message
         time.sleep(RETRANSMIT_TIMEOUT_LENGTH)
 
-        # print('Last Received Ack: ' + str(self.last_received_ack_num))
-        # print('Amount of bytes sent ' + str(totalBytesSent + MSS))
-
         bytesInMostRecentMessage = len(transferBodyBits)
+
+        print('Last Received Ack: ' + str(self.last_received_ack_num))
+        print('Amount of bytes sent ' + str(totalBytesSent + bytesInMostRecentMessage))
 
         # Wait to receive an ack
         # Check if the ack is equal to the total amount of Bytes sent + bytes in most recent message + 1
