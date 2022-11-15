@@ -12,6 +12,7 @@ UDP_PORT = 5005 # Connecting without channel
 # UDP_PORT = 5007 # Testing with channel
 MSS = 12 # maximum segment size | This is measured in bytes
 MSL = 5 # MAX SEGMENT LIFETIME -  Not sure what value it should be. I am measuring this in seconds for use with Python Time Library
+RETRANSMIT_TIMEOUT_LENGTH = 5
 
 def send_udp(message):
   sock.sendto(message, (UDP_IP, UDP_PORT))
@@ -32,17 +33,17 @@ class Client:
       self.update_state(States.SYN_SENT)
 
       # Initialize last received ack and seq num
-      self.last_received_ack = -1
+      self.last_received_ack_num= -1
       self.last_received_seq_num = -1
       
       # Wait for response from syn_ack
       self.receive_acks()
 
-      # print("Received ack " + str(self.last_received_ack))
+      # print("Received ack " + str(self.last_received_ack_num))
       # print("Sent seq num " + str(seq_num))
 
       # Check if the received ack is equal to the sent seq_num + 1
-      if self.last_received_ack == seq_num + 1:
+      if self.last_received_ack_num== seq_num + 1:
         server_seq_num = self.last_received_seq_num 
         ack_num = server_seq_num + 1
         # I do not think ack needs a seq num
@@ -75,12 +76,12 @@ class Client:
       self.update_state(States.FIN_WAIT_1)
 
       # Wait to receive an ack
-      self.last_received_ack = -1
+      self.last_received_ack_num = -1
       self.last_received_seq_num = -1
       self.receive_acks()
       
       # Verify the received ack_num
-      if self.last_received_ack == fin_seq_num + 1: 
+      if self.last_received_ack_num== fin_seq_num + 1: 
         self.update_state(States.FIN_WAIT_2)
 
         # Wait for the FIN from the sever
@@ -124,16 +125,16 @@ class Client:
 
       # Going to treat each ASCII character as one byte    
       # Need to determine how much of the message has been sent
-      charactersSent = 0
+      bytesSent = 0
 
       # Iterate until the entire messae is sent
-      while charactersSent  < len(message):
+      while bytesSent  < len(message):
         # Build header for sending reliably
         # I will make characters sent the sequence number to allow the server to determine the correct order of the string
-        transferHeader = utils.Header(charactersSent, 0, syn=0, ack=0, fin=0)
+        transferHeader = utils.Header(bytesSent, 0, syn=0, ack=0, fin=0)
         
         # Build the portion of the body to send
-        transferBody = message[charactersSent:charactersSent + MSS]
+        transferBody = message[bytesSent:bytesSent + MSS]
 
         # print("Raw text to send " + transferBody)
 
@@ -145,8 +146,25 @@ class Client:
         # Combine header and the body and send it
         send_udp(transferHeader.bits() + transferBodyBits)
 
-        # Increment characters sent 
-        charactersSent += MSS
+         # Wait for the FIN from the sever
+        self.receive_acks()
+
+        # Only wait a certain amount of time, then must reetransmit message
+        time.sleep(RETRANSMIT_TIMEOUT_LENGTH)
+
+        print('Last Received Ack: ' + str(self.last_received_ack_num))
+        print('Amount of bytes sent ' + str(bytesSent + MSS))
+
+        # Wait to receive an ack
+        # Check if the ack is equal to the amount of Bytes sent + MSS + 1
+        if self.last_received_ack_num == (bytesSent + MSS + 1):
+          # Increment characters sent if and only if an ack is received and it is the expected num
+          # This means it's time move on to the next segment of the message
+          bytesSent += MSS
+        else:
+          # Resend the message
+          # An unexpected ack was received or the timeout window has passed
+          pass
 
 
   # these two methods/function can be used receive messages from
@@ -181,7 +199,7 @@ class Client:
 
   def receive_acks(self):
     # Start receive_acks_sub_process as a process
-    lst_rec_ack_shared = Value('i', self.last_received_ack)
+    lst_rec_ack_shared = Value('i', self.last_received_ack_num)
     lst_rec_seq_shared = Value('i', self.last_received_seq_num)
 
     p = multiprocessing.Process(target=self.receive_acks_sub_process, args=(sock, lst_rec_ack_shared, lst_rec_seq_shared))
@@ -193,10 +211,10 @@ class Client:
       p.terminate()
       p.join()
     # here you can update your client's instance variables.
-    self.last_received_ack = lst_rec_ack_shared.value
+    self.last_received_ack_num= lst_rec_ack_shared.value
     self.last_received_seq_num = lst_rec_seq_shared.value
     if utils.DEBUG:
-      print('received: ', self.last_received_ack)
+      print('received: ', self.last_received_ack_num)
       print('shared variable: ', lst_rec_ack_shared)
 
 # Need to have a main process to use the multi threading logic

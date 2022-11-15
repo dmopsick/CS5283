@@ -116,13 +116,21 @@ while True:
       if (data_seq_num == len(receivedMessage)):
         # Based on seq number this is the next message, append it to the received message 
 
-        print("Message arriving in expected order")
+        print("Message arriving in expected order, body: " + body)
 
         # Add the body of the TCP segment to the received message
         receivedMessage = receivedMessage + body
       else :
         # This packet has arrived out of order... let's ignore for noq
         pass
+
+      # Must send back an ack no matter what 
+      # Build out the ack header
+      data_transfer_ack_num = len(receivedMessage) + 1
+      data_transfer_ack_header = utils.Header(0, data_transfer_ack_num, syn=0, ack=1, fin=0)
+
+      # Send the header
+      sock.sendto(data_transfer_ack_header.bits(), addr)
 
       # print("FLAG 10 - Entire message so far: " + receivedMessage)
   elif server_state == States.CLOSE_WAIT:
