@@ -129,6 +129,9 @@ class Client:
       # Need to determine how much of the message has been sent
       totalBytesSent = 0
 
+      # Add the end sequence to each message before sending
+      message = message + utils.END_OF_MESSAGE
+
       # Iterate until the entire messae is sent
       while totalBytesSent  < len(message):
         # Build header for sending reliably

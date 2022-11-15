@@ -3,7 +3,7 @@ import random
 
 # Set this to false before submission
 DEBUG = True
-# END_OF_MESSAGE = "\r\n\r\n"
+END_OF_MESSAGE = "\\r\\n\\r\\n"
 
 # Extend the possible states based on your implementation
 # Refer TCP protocol

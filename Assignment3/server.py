@@ -85,11 +85,19 @@ while True:
 
     # Check if the client replied with an ack
     if header.ack == 1:
-      # print("CLIENT REPLIED WITH ACK")
       update_server_state(States.ESTAB)
   elif server_state == States.ESTAB:
     # Need to receive messages until the state changes
     header, body, addr = recv_msg()
+
+    # If the end of message bit has been loaded, print the message 
+    end_of_message_length = len(utils.END_OF_MESSAGE)
+
+    # If the received message is long enough to contain an end of message sequence, check for it
+    if len(receivedMessage) > end_of_message_length:
+      # If the message currently ends with an end of message sequence, print the entire message
+      if receivedMessage[-end_of_message_length:] == utils.END_OF_MESSAGE:
+        print(receivedMessage)
     
     # Check if there is a fin bit to end the connection
     if header.fin == 1:
@@ -97,6 +105,7 @@ while True:
       fin_seq_num = header.seq_num
       fin_ack_num = fin_seq_num + 1
 
+      # Build the FIN ACK header
       fin_ack_header = utils.Header(0, fin_ack_num, syn=0, ack=1, fin=0)
       
       # Send the FIN ACK to the client
@@ -104,12 +113,12 @@ while True:
 
       update_server_state(States.CLOSE_WAIT)
 
-      # Leaving this print to show the transferred message
-      print("FINAL LOADED MESSAGE " +  receivedMessage)
+      # Leaving this print to show the transferred message hard coded on fin, testing only
+      # print("FINAL LOADED MESSAGE " +  receivedMessage)
     else:
       # No FIN bit, continue loading the message segment by segment
 
-      print("Flag 1: Received following seq number: " + str(header.seq_num))
+     #  print("Flag 1: Received following seq number: " + str(header.seq_num))
 
       # Get the sequence number of the received data
       data_seq_num = header.seq_num
@@ -117,8 +126,6 @@ while True:
       # Verify the seq numbers to determine whether the message is arriving in the corect order
       if (data_seq_num == len(receivedMessage)):
         # Based on seq number this is the next message, append it to the received message 
-
-        # print("Message arriving in expected order, body: " + body)
 
         # Add the body of the TCP segment to the received message
         receivedMessage = receivedMessage + body
@@ -137,7 +144,6 @@ while True:
       # Send the header
       sock.sendto(data_transfer_ack_header.bits(), addr)
 
-      # print("FLAG 10 - Entire message so far: " + receivedMessage)
   elif server_state == States.CLOSE_WAIT:
     # Generate a sequence num
     seq_num = utils.rand_int()
