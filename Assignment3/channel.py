@@ -89,8 +89,8 @@ event_terminate = threading.Event()
 # for initial testing, suggest using a small value (0.01, so ~1% messages dropped)
 # for final testing, suggest using a large value (0.5, so ~50% messages dropped)
 # untested, but 0.0 should be an ideal channel (no drops) but with delays
-p_drop_server = 0.5 # (roughly) probability to drop an ack from server
-p_drop_client = 0.5 # (roughly) probability to drop a message from client
+p_drop_server = 0.3 # (roughly) probability to drop an ack from server
+p_drop_client = 0.3 # (roughly) probability to drop a message from client
 
 round = 0 # used for some startup synchronization
 event_wait_send = threading.Event() # used for some recurring synchronization ordering sends/recvs

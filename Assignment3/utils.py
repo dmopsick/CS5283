@@ -2,7 +2,7 @@ from enum import Enum
 import random
 
 # Set this to false before submission
-DEBUG = True
+DEBUG = False
 END_OF_MESSAGE = "\\r\\n\\r\\n"
 
 # Extend the possible states based on your implementation
