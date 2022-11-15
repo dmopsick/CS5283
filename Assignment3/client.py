@@ -141,8 +141,6 @@ class Client:
         # Build the portion of the body to send
         transferBody = message[totalBytesSent:totalBytesSent + MSS]
 
-        # print("Raw text to send " + transferBody)
-
         # Convert the ascii text to bits
         transferBodyBits = transferBody.encode('ascii')
 
@@ -159,8 +157,8 @@ class Client:
 
         bytesInMostRecentMessage = len(transferBodyBits)
 
-        print('Last Received Ack: ' + str(self.last_received_ack_num))
-        print('Amount of bytes sent ' + str(totalBytesSent + bytesInMostRecentMessage))
+        # print('Last Received Ack: ' + str(self.last_received_ack_num))
+        # print('Amount of bytes sent ' + str(totalBytesSent + bytesInMostRecentMessage))
 
         # Wait to receive an ack
         # Check if the ack is equal to the total amount of Bytes sent + bytes in most recent message + 1
