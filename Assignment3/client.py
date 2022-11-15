@@ -8,8 +8,8 @@ import time
 import utils
 
 UDP_IP = "127.0.0.1"
-UDP_PORT = 5005 # Connecting without channel
-# UDP_PORT = 5007 # Testing with channel
+# UDP_PORT = 5005 # Connecting without channel
+UDP_PORT = 5007 # Testing with channel
 MSS = 12 # maximum segment size | This is measured in bytes
 MSL = 5 # MAX SEGMENT LIFETIME -  Not sure what value it should be. I am measuring this in seconds for use with Python Time Library
 RETRANSMIT_TIMEOUT_LENGTH = 1
@@ -116,7 +116,7 @@ class Client:
     self.client_state = new_state
 
   def send_reliable_message(self, message):
-    # print("Send Reliable message called with " + message)
+    # Reset the last received variables
     self.last_received_ack_num = -1
     self.last_received_seq_num = -1
 

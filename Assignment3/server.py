@@ -4,8 +4,8 @@ import utils
 from utils import States
 
 UDP_IP = "127.0.0.1"
-UDP_PORT = 5005 # For testing without channel
-# UDP_PORT = 5008 # For testing with channel
+# UDP_PORT = 5005 # For testing without channel
+UDP_PORT = 5008 # For testing with channel
 
 # initial server_state
 server_state = States.CLOSED
